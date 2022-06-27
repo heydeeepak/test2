@@ -3,7 +3,6 @@ const fs = require('fs');
 const app = express()
 const multer = require('multer');
 
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/')
@@ -29,6 +28,7 @@ app.post("/upload", (req, res) => {
     upload(req, res, (err) => {
         if (err) {
             res.status(400).send("Something went wrong!");
+            console.log("eror occured");
         }
         res.send(req.file);
     });
