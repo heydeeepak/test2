@@ -1,10 +1,37 @@
 const express = require('express')
 const fs = require('fs');
 const app = express()
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, uniqueSuffix + '-' + file.originalname)
+    }
+})
+
+const upload = multer({ storage }).single("file");
 
 app.use(express.json())
 
 let db = require('./db.json')
+
+app.get('/', (req, res) => {
+    res.send('hello world');
+});
+
+app.post("/upload", (req, res) => {
+
+    upload(req, res, (err) => {
+        if (err) {
+            res.status(400).send("Something went wrong!");
+        }
+        res.send(req.file);
+    });
+});
 
 app.post("/api/product", (req, res,) => {
     try {
