@@ -1,20 +1,51 @@
 const express = require('express')
+const fs = require('fs');
 const app = express()
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' })
 
 app.use(express.json())
 
+let db = require('./db.json')
 
-let db = []
-
-
-app.post("/api/product", (req, res) => {
+app.post("/upload", (req, res) => {
     try {
-        db = [...db, req.body]
-        return res.status(201).json({
-            "message": "Product added successfully",
-            "data": req.body
-        })
+        const storage = multer.diskStorage({
+            destination: function (req, file, cb) {
+              cb(null, '/Home/Desktop/node/API')
+            },
+            filename: function (req, file, cb) {
+              const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+              cb(null, file.fieldname + '-' + uniqueSuffix)
+            }
+          })
+          
+          const upload = multer({ storage: storage })
+          
 
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+app.post("/api/product", (req, res,) => {
+    try {
+
+        console.log("=========REQUEST BODY=========", req.body)
+        db = [...db, req.body]
+        fs.writeFile('./db.json', JSON.stringify(db), (err) => {
+            if (err) {
+                return res.status(201).json({
+                    "success": false,
+                    "error": err.message
+                })
+            }
+            return res.status(201).json({
+                "success": true,
+                "messsage": "Data has been saved successfully"
+            })
+
+        })
     }
     catch (error) {
         return res.status(500).json({ error: error.message })
@@ -43,39 +74,69 @@ app.put("/api/product/:id", (req, res) => {
         let pr = {}
         for (let d of db) {
             if (d["id"] == req.params.id) {
-                d["product"] = req.body.product
+                d["name"] = req.body.name
                 pr = d
             }
         }
-        return res.status(200).json({
-            "message": "Product update successfully.",
-            "data": pr
+
+        fs.writeFile('./db.json', JSON.stringify(db), (err) => {
+            if (err) {
+                return res.status(201).json({
+                    "success": false,
+                    "error": err.message
+                })
+            }
+            return res.status(201).json({
+                "success": true,
+                "messsage": "Data has been updated successfully"
+            })
+
         })
     }
     catch (error) {
         return res.status(500).json({ error: error.message })
     }
 })
-
 app.delete("/api/product/:id", (req, res) => {
     try {
-        const index = db.findIndex((d)=> d.id == req.params.id)
+
+        const index = db.findIndex((d) => d.id == req.params.id)
         if (index) {
+
             db.splice(index, 1)
+
+            fs.writeFile('./db.json', JSON.stringify(db), (err) => {
+                if (err) {
+                    return res.status(201).json({
+                        "success": false,
+                        "error": err.message
+                    })
+                }
+                return res.status(201).json({
+                    "success": true,
+                    "messsage": "Data has been deleted successfully"
+                })
+            })
+
             return res.status(200).json({ message: "Product deleted successfully", data: db })
+
         }
+
         else {
             return res.status(400).json({ message: "Invalid Product" })
         }
     }
+
+
     catch (error) {
+        json
         return res.status(500).json({ error: error.message })
     }
 })
 
-app.listen(4000, () => {
+app.listen(3500, () => {
     console.log({
         "instance": true,
-        "port": 4000
+        "port": 3500
     })
 })
